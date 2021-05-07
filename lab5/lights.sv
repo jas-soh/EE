@@ -2,6 +2,7 @@ module lights (clk, reset, w, out);
 	input logic clk, reset;
 	input logic [0:1] w; 
 	output logic [0:2] out; 
+	
 	// State variables 
 	enum logic[2:0] { left=3'b100, right=3'b001, outside=3'b101, center=3'b010 } ps, ns; 
  
@@ -10,21 +11,14 @@ module lights (clk, reset, w, out);
 		ns=center;
 		case (ps) 
 			left:    if (w == 2'b01) ns = right; 
-					   else if (w == (2'b00 || 2'b10)) ns = center;  
-						//else if (w == 2'b10) ns = center;
-			right: if (w == (2'b00 || 2'b01)) ns = center; 
-					   //else if (w == 2'b01) ns = center; 
-						else if (w == 2'b10) ns = left;
+			right: 	if (w == 2'b10) ns = left; 
 			center: if (w == 2'b00) ns = outside; 
-					   else if (w == 2'b01) ns = left; 
+						else if (w == 2'b01) ns = left;
 						else if (w == 2'b10) ns = right;
-			outside: ns = center; 
-					   //else if (w == 2'b01) ns = center; 
-						//else if (w == 2'b10) ns = center;
 		endcase 
 	end 
  
-	// Output logic - could also be another always_comb block. 
+	// Output logic
 	assign out = ps; 
  
 	// DFFs 
@@ -36,3 +30,29 @@ module lights (clk, reset, w, out);
 	end 
  
 endmodule 
+
+module lights_testbench(); 
+	logic clk, reset;
+	logic [0:1] w; 
+	logic [0:2] out;
+ 
+	lights dut (clk, reset, w, out); 
+ 
+	// Set up a simulated clock. 
+	parameter CLOCK_PERIOD=100; 
+	initial begin 
+		clk <= 0; 
+		forever #(CLOCK_PERIOD/2) clk <= ~clk; // Forever toggle the clock 
+	end 
+ 
+	// Set up the inputs to the design. Each line is a clock cycle. 
+	initial begin 
+										@(posedge clk); 
+		reset <= 1; 				@(posedge clk); // Always reset FSMs at start 
+		reset <= 0; w <= 2'b00; @(posedge clk); 
+						w <= 2'b01; @(posedge clk); 
+						w <= 2'b10; @(posedge clk); 
+ 
+		$stop; // End the simulation. 
+	end 
+endmodule
