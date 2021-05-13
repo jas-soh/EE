@@ -14,7 +14,7 @@ module victory(clk, rst, L, R, L_edge, R_edge, hex);
       default: ns = no_win;
   end
       
-  hex = ps;
+  assign hex = ps;
   
   always_ff @(posedge clk) begin
 		if (rst)
