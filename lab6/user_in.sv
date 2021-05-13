@@ -23,3 +23,28 @@ module user_in(clk, rst, key, p);
 			ps <= ns;
 		end
 endmodule
+
+module user_in_testbench(); 
+	logic clk;  
+	logic KEY, rst;
+	logic [1:0] p; 
+ 
+	user_in dut (clk, rst, key, p);
+ 
+	// Set up a simulated clock. 
+	parameter CLOCK_PERIOD=100; 
+	initial begin 
+		clk <= 0; 
+		forever #(CLOCK_PERIOD/2) clk <= ~clk; // Forever toggle the clock 
+	end 
+ 
+	// Test the design. 
+	initial begin
+			
+					repeat(1) @(posedge clk);
+		rst <= 1 		repeat(4) @(posedge clk);
+		rst <= 0; key <= 0; 	repeat(2) @(posedge clk);
+			  key <= 1;	repeat(2) @(posedge clk);
+		rst <= 1; 		repeat(2) @(posedge clk);
+	end
+endmodule 
