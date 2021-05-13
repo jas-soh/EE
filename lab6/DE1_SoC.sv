@@ -20,13 +20,13 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW);
 	end
 	
 	always_ff @(posedge CLOCK_50) begin
-		stable2 <= keys1;
+		stable2 <= stable1;
 	end
 	
 	//assign p1 = KEY[3];
 	//assign p2 = KEY[0];
 	
-	user_in u1 (.clk(CLOCK_50), .rst(reset), .key({~KEY[3], ~KEY[0]}), .p(p[1:0]));
+	user_in u1 (.clk(CLOCK_50), .rst(reset), .key({~KEY[3], ~KEY[0]}), .p(stable2));
 	
 	playfield pf (.clk(CLOCK_50), .rst(reset), .L(p[1]), .R(p[0]), .leds(LEDR[8:0]));
 	
