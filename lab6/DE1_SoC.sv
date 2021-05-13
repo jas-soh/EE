@@ -1,6 +1,6 @@
-module DE1_SoC (CLOCK_50, HEX, KEY, LEDR, SW); 
+module DE1_SoC (CLOCK_50, HEX, HEX1, HEX2, HEX, HEX4, HEX5, KEY, LEDR, SW); 
 	input logic CLOCK_50; // 50MHz clock. 
-	output logic [6:0] HEX; 
+	output logic [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5; 
 	output logic [9:0] LEDR; 
 	input logic [3:0] KEY; // True when not pressed, False when pressed 
 	input logic [9:0] SW; 
@@ -29,18 +29,18 @@ module DE1_SoC (CLOCK_50, HEX, KEY, LEDR, SW);
 	
 	playfield pf (.clk(CLOCK_50), .rst(reset), .L(p[1]), .R(p[0]), .leds(LEDR[8:0]));
 	
-	victory v (.clk(CLOCK_50), .rst(reset), .L(p[1], .R(p[0]), .L_edge(LEDR[8]), .R_edge(LEDR[0]), .hex(HEX));
+	victory v (.clk(CLOCK_50), .rst(reset), .L(p[1], .R(p[0]), .L_edge(LEDR[8]), .R_edge(LEDR[0]), .hex(HEX0));
  
 endmodule
 
 module DE1_SoC_testbench(); 
 	logic CLOCK_50; 
-	logic [6:0] HEX; 
+	logic [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5; 
 	logic [9:0] LEDR; 
 	logic [3:0] KEY; 
 	logic [9:0] SW; 
  
-	DE1_SoC dut (CLOCK_50, HEX, KEY, LEDR, SW); 
+	DE1_SoC dut (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW); 
  
 	// Set up a simulated clock. 
 	parameter CLOCK_PERIOD=100; 
