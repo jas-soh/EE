@@ -1,6 +1,6 @@
-module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW); 
+module DE1_SoC (CLOCK_50, HEX, KEY, LEDR, SW); 
 	input logic CLOCK_50; // 50MHz clock. 
-	output logic [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5; 
+	output logic [6:0] HEX; 
 	output logic [9:0] LEDR; 
 	input logic [3:0] KEY; // True when not pressed, False when pressed 
 	input logic [9:0] SW; 
@@ -24,17 +24,12 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW);
 		stable2 <= stable1;
 	end
 	
-	user_in playerL (.clk(CLOCK_50), .rst(reset), .key(stable2[1]), .p(p[1]));
-	user_in playerR (.clk(CLOCK_50), .rst(reset), .key(stable2[0]}), .p(p[0]));
+	user_in playerL (.clk(CLOCK_50), .rst(reset), .key(~stable2[1]), .p(p[1]));
+	user_in playerR (.clk(CLOCK_50), .rst(reset), .key(~stable2[0]}), .p(p[0]));
 	
 	playfield pf (.clk(CLOCK_50), .rst(reset), .L(p[1]), .R(p[0]), .leds(LEDR[8:0]));
 	
-	assign HEX0 = 7'b1111111;
-	assign HEX1 = 7'b1111111;
-	assign HEX2 = 7'b1111111;
-	assign HEX3 = 7'b1111111;
-	assign HEX4 = 7'b1111111;
-	assign HEX5 = 7'b1111111;
+	victory v (.clk(CLOCK_50), .rst(reset), .L(p[1], .R(p[0]), .L_edge(LEDR[8]), .R_edge(LEDR[0]), .hex(HEX));
  
 endmodule
 
