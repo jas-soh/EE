@@ -35,12 +35,12 @@ endmodule
 
 module DE1_SoC_testbench(); 
 	logic CLOCK_50; 
-	logic [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5; 
+	logic [6:0] HEX; 
 	logic [9:0] LEDR; 
 	logic [3:0] KEY; 
 	logic [9:0] SW; 
  
-	DE1_SoC dut (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW); 
+	DE1_SoC dut (CLOCK_50, HEX, KEY, LEDR, SW); 
  
 	// Set up a simulated clock. 
 	parameter CLOCK_PERIOD=100; 
