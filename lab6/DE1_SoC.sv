@@ -11,22 +11,21 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW);
 	logic [31:0] div_clk; 
  
 	assign reset = SW[9]; 
-	logic [1:0] stable1;
-	logic [1:0] stable2;
+	logic [1:0] stable1; // after 1st DFF
+	logic [1:0] stable2; // after 2nd DFF
+	logic [1:0] p; // player input
 	
 	always_ff @(posedge CLOCK_50) begin
-		stabe1[0] <= KEY[0];
-		stable1[1] <= KEY[3];
+		stabe[1] <= KEY[3];
+		stable1[0] <= KEY[0];
 	end
 	
 	always_ff @(posedge CLOCK_50) begin
 		stable2 <= stable1;
 	end
 	
-	//assign p1 = KEY[3];
-	//assign p2 = KEY[0];
-	
-	user_in u1 (.clk(CLOCK_50), .rst(reset), .key({~KEY[3], ~KEY[0]}), .p(stable2));
+	user_in playerL (.clk(CLOCK_50), .rst(reset), .key(stable2[1]), .p(p[1]));
+	user_in playerR (.clk(CLOCK_50), .rst(reset), .key(stable2[0]}), .p(p[0]));
 	
 	playfield pf (.clk(CLOCK_50), .rst(reset), .L(p[1]), .R(p[0]), .leds(LEDR[8:0]));
 	
