@@ -11,16 +11,16 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW);
 	logic [31:0] div_clk; 
  
 	assign reset = SW[9]; 
-	parameter whichClock = 25; // 0.75 Hz clock 
-	clock_divider cdiv (.clock(CLOCK_50), 
-	.reset(reset), 
-	.divided_clocks(div_clk)); 
+	//parameter whichClock = 25; // 0.75 Hz clock 
+	//clock_divider cdiv (.clock(CLOCK_50), 
+	//.reset(reset), 
+	//.divided_clocks(div_clk)); 
  
 	// Clock selection; allows for easy switching between simulation and board clocks 
-	logic clkSelect; 
+	//logic clkSelect; 
 	// Uncomment ONE of the following two lines depending on intention 
  
-	assign clkSelect = CLOCK_50; // for simulation 
+	//assign clkSelect = CLOCK_50; // for simulation 
 	//assign clkSelect = div_clk[whichClock]; // for board 
 	// Set up FSM inputs and outputs. 
 	logic [1:0] p;
@@ -28,9 +28,9 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW);
 	//assign p1 = KEY[3];
 	//assign p2 = KEY[0];
 	
-	user_in u1 (.clk(clkSelect), .rst(reset), .key({KEY[3], KEY[0]}), .p(p[1:0]));
+	user_in u1 (.clk(CLOCK_50), .rst(reset), .key({~KEY[3], ~KEY[0]}), .p(p[1:0]));
 	
-	playfield pf (.clk(clkSelect), .rst(reset), .L(p[1]), .R(p[0]), .leds(LEDR[8:0]));
+	playfield pf (.clk(CLOCK_50), .rst(reset), .L(p[1]), .R(p[0]), .leds(LEDR[8:0]));
 	
 	assign HEX0 = 7'b1111111;
 	assign HEX1 = 7'b1111111;
