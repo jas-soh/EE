@@ -1,7 +1,7 @@
 module user_in(clk, rst, key, p);
 	input logic clk, rst;
-	input logic [1:0] key;
-	output logic [1:0] p;
+	input logic key;
+	output logic p;
 	
 	enum {unpressed, pressed} ps, ns;
 	
