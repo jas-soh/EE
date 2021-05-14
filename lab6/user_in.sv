@@ -14,7 +14,7 @@ module user_in(clk, rst, key, p);
 		endcase
 	end
 	
-	assign p = (ps == pressed);
+	assign p = (ps == pressed) & !key;
 	
 	always_ff @(posedge clk) begin
 		if (rst)
@@ -29,7 +29,7 @@ module user_in_testbench();
 	logic KEY, rst;
 	logic [1:0] p; 
  
-	user_in dut (clk, rst, key, p);
+	user_in dut (clk, rst, KEY, p);
  
 	// Set up a simulated clock. 
 	parameter CLOCK_PERIOD=100; 
@@ -42,9 +42,9 @@ module user_in_testbench();
 	initial begin
 			
 					repeat(1) @(posedge clk);
-		rst <= 1 		repeat(4) @(posedge clk);
-		rst <= 0; key <= 0; 	repeat(2) @(posedge clk);
-			  key <= 1;	repeat(2) @(posedge clk);
+		rst <= 1; 		repeat(4) @(posedge clk);
+		rst <= 0; KEY <= 0; 	repeat(2) @(posedge clk);
+			  KEY <= 1;	repeat(2) @(posedge clk);
 		rst <= 1; 		repeat(2) @(posedge clk);
 	end
-endmodule 
+endmodule
