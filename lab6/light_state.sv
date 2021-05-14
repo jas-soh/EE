@@ -7,11 +7,11 @@ module light_state (clk, rst, is_center, L, R, NL, NR, led);
 	
 	always_comb begin
 		case (ps)
-			on: if ( !L & R & !NL & !NR ) ns = off;
-					else if ( L & !R & !NL & !NR ) ns = off;
+			on: if ( ~L & R & ~NL & ~NR ) ns = off;
+					else if ( L & ~R & ~NL & ~NR ) ns = off;
 					else ns = on;
-			off: if ( !L & R & NL & !NR ) ns = on;
-					else if ( L & !R & !NL & NR ) ns = on;
+			off: if ( ~L & R & NL & ~NR ) ns = on;
+					else if ( L & ~R & ~NL & NR ) ns = on;
 					else ns = off;
 		endcase
 	end
