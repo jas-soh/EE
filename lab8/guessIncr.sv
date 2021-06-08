@@ -11,11 +11,11 @@ endmodule
 module triesIncr(clk, rst, incr, out);
 	input logic clk, rst;
 	input logic incr;
-	output logic [2:0] out;
+	output logic [5:0] out;
 	
 	always_ff @(posedge clk) begin
-		if (rst) out <= 0;
-		else if (incr) out <= out + 3'b001;
+		if (rst) out <= 6'b000000;
+		else if (incr) out <= out + 6'b000001;
 	end
 endmodule 
 
