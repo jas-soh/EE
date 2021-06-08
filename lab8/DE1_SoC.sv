@@ -23,11 +23,11 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW);
 	
 	// count number of tries
 	logic [5:0] tries;
-	logic [1:0] incrTries;
-	incr incr_ones (.clk(clkSelect), .rst(reset), .sw(SW[0]), .out(incrTries[0]));
-	incr incr_tens (.clk(clkSelect), .rst(reset), .sw(SW[0]), .out(incrTries[1]));
-	triesIncr countOnes (.clk(clkSelect), .rst(reset), .incr(incrTries[0]), .out(tries[2:0]));
-	triesIncr countTens (.clk(clkSelect), .rst(reset), .incr(incrTries[1]), .out(tries[5:3]));
+	logic incrTries;
+	incr incrT (.clk(clkSelect), .rst(reset), .sw(SW[0]), .out(incrTries));
+	//incr incr_tens (.clk(clkSelect), .rst(reset), .sw(SW[0]), .out(incrTries[1]));
+	triesIncr countT (.clk(clkSelect), .rst(reset), .incr(incrTries), .out(tries));
+	//triesIncr countTens (.clk(clkSelect), .rst(reset), .incr(incrTries[1]), .out(tries[5:3]));
 	guessDisplay displayOnes (.num(tries[2:0]), .out(HEX5));
 	guessDisplay displayTens (.num(tries[5:3]), .out(HEX4));
 	
