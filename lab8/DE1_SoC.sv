@@ -22,11 +22,14 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW);
 	LFSR getSolution (.clk(clkSelect), .rst(reset), .out(sol));
 	
 	// count number of tries
-	logic [2:0] tries;
-	logic incrTries;
-	incr increment (.clk(clkSelect), .rst(reset), .sw(SW[0]), .out(incrTries));
-	triesIncr countTries (.clk(clkSelect), .rst(reset), .incr(incrTries), .out(tries));
-	guessDisplay displayTries (.num(tries), .out(HEX5));
+	logic [5:0] tries;
+	logic [1:0] incrTries;
+	incr incr_ones (.clk(clkSelect), .rst(reset), .sw(SW[0]), .out(incrTries[0]));
+	incr incr_tens (.clk(clkSelect), .rst(reset), .sw(SW[0]), .out(incrTries[1]));
+	triesIncr countOnes (.clk(clkSelect), .rst(reset), .incr(incrTries[0]), .out(tries[2:0]));
+	triesIncr countTens (.clk(clkSelect), .rst(reset), .incr(incrTries[1]), .out(tries[5:3]));
+	guessDisplay displayOnes (.num(tries[2:0]), .out(HEX5));
+	guessDisplay displayTens (.num(tries[5:3]), .out(HEX4));
 	
 	// stabilize
 	logic KEY3, KEY2, KEY1, KEY0;
