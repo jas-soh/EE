@@ -9,7 +9,8 @@ module guessIncr(clk, rst, incr, out);
 endmodule 
 
 module triesIncr(clk, rst, incr, out);
-	input logic clk, rst, incr;
+	input logic clk, rst;
+	input logic incr;
 	output logic [2:0] out;
 	
 	always_ff @(posedge clk) begin
