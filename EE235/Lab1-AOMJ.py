@@ -5,10 +5,9 @@ import simpleaudio as sa
 from scipy.io import wavfile as wav
 import matplotlib
 import matplotlib.pyplot as plt
-Summary
-In this lab, we learned how to create and edit arrays in Python to simulate signal and time vectors. We then experimented with editing and operating on the arrays, and read, wrote, and eventually played the audio they represented. From there we learned how to graph functions and the audio files in python.
-Assignment 1 -- Creating and Manipulating Arrays
-# Assignment 1 - Creating and Manipulating Arrays
+#Summary
+#In this lab, we learned how to create and edit arrays in Python to simulate signal and time vectors. We then experimented with editing and operating on the arrays, and read, wrote, and eventually played the audio they represented. From there we learned how to graph functions and the audio files in python.
+#Assignment 1 -- Creating and Manipulating Arrays
 
 # Part A
 y1 = np.array([4,6,2])
