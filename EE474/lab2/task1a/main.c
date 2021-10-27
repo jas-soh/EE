@@ -62,6 +62,6 @@ void timer_init()
 
 
 void count_down() {
-  while (GPTMRIS_0 & 0x01 != 0x01) {}
+  while ((GPTMRIS_0 & 0x01) != 0x0) {}
   GPTMICR_0 |= 0x01; // clears TATORIS bit
 }
