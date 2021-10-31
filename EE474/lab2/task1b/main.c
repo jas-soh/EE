@@ -3,13 +3,14 @@
 
 int main()
 {
-    GPTMInit();
+    timer1_init();
+    timer0_init();
     LED_init();
     extern_switch_init();
 
     while (1)
     {
-        tffFunc();
+      tffFunc();
     }
     return 0;
 }
@@ -18,40 +19,76 @@ int time = 0; // declare time to count the time
 int cnt = 0;
 int prev = 0;
 
-void GPTMInit()
+void timer0_init()
 {
-    RCGCTIMER |= GPTM0_16_32;           // Enable 16/32 Timer 0
+    RCGCTIMER |= TIMER0_EN; // Enable 16/32 Timer 0
 
-    GPTMCTL0 = GPTMA_DISABLE;           // Disable Timer A
-    GPTMCFG0 = TM_MODE_32;              // Select two timer to 32-bit mode
-    GPTMTAMR0 |= TAMR_PER_TM_MODE;      // Set periodic timer mode
-    GPTMTAMR0 &= ~TACDIR_COUNT_UP;      // Configure TACDIR0 to count down
-    GPTMTAILR0 = N16_MIL;               // Load value of 16 million into GPTMTAILR0
-    GPTMCTL0 |= GPTMA_ENABLE;           // Enable Timer A
+    GPTMCTL_0 = 0x0; // Disable Timer A
+    GPTMCFG_0 = MODE_32_bit; // Select two timer to 32-bit mode
+    GPTMTAMR_0 = PERIODIC_MODE; // Set to periodic timer mode
+    GPTMTAMR_0 = COUNT_DOWN; // Configure TACDIR to count down
+    GPTMTAILR_0 = VAL_16_MIL; // Load value of 16 million
+    GPTMCTL_0 |= 0x1; // Enable Timer A
+}
+
+void timer1_init()
+{
+    RCGCTIMER |= TIMER1_EN; // Enable 16/32 Timer 1
+
+    GPTMCTL_1 = 0x0; // Disable Timer A
+    GPTMCFG_1 = MODE_32_bit; // Select two timer to 32-bit mode
+    GPTMTAMR_1 = PERIODIC_MODE; // Set to periodic timer mode
+    GPTMTAMR_1 = COUNT_DOWN; // Configure TACDIR to count down
+    GPTMTAILR_1 = VAL_80_MIL; // Load value of 16 million
+    GPTMCTL_1 |= 0x1; // Enable Timer A
 }
 
 int isReached()
 {
-    return (GPTMRIS0 & 0x1);
+    return (GPTMRIS_0 & 0x1);
 }
 
 void resetTimer()
 {
-    GPTMICR0 |= 0x1;
+    GPTMICR_0 |= 0x1;
 }
 
-void oneHertz(int n)
+int two_seconds()
 {
     resetTimer();
     int t = 0;
-    while (t < n)
+    while (t < 2 )
     {
+        if ((GPIODATA_L & 0x03) == 0x0) 
+        {
+          resetTimer();
+          t = 0;
+          return 0;
+        }
         if (isReached())
         {
-            t++;
-            resetTimer();
+          resetTimer();
+          t++;
         }
     }
+    // must have finished holding two seconds
+    return 1;
+}
+
+int five_seconds()
+{
+    GPTMICR_1 |= 0x1;
+    int t = 0;
+    while (t < 5 )
+    {
+        if (GPTMRIS_1 & 0x1)
+        {
+          GPTMICR_1 |= 0x1;
+          t++;
+        }
+    }
+    // must have finished holding two seconds
+    return 1;
 }
 
 
@@ -78,28 +115,28 @@ void LED_init(void)
     GPIODEN_L |= 0x10;
 }
 // turn on Green LED
-void Go_State(void)
+void go_output(void)
 {
     GPIODATA_L &= ~0x4;
     GPIODATA_L &= ~0x8;
     GPIODATA_L |= 0x10;
 }
 // turn on Red LED
-void Stop_State(void)
+void stop_output(void)
 {
     GPIODATA_L |= 0x4;
     GPIODATA_L &= ~0x8;
     GPIODATA_L &= ~0x10;
 }
 // turn on Yellow LED
-void Warn_State(void)
+void warn_output(void)
 {
     GPIODATA_L &= ~0x4;
     GPIODATA_L |= 0x8;
     GPIODATA_L &= ~0x10;
 }
 // turn off all LEDs
-void LED_off(void)
+void off_output(void)
 {
     GPIODATA_L &= ~0x4;
     GPIODATA_L &= ~0x8;
@@ -125,120 +162,122 @@ void extern_switch_init(void)
 
 unsigned long sys_switch(void)
 {
-    int firstTime = GPIODATA_L & 0x1;
-    if (firstTime == 0)
-        return 0;
-    oneHertz(2);
-    int secondTime = GPIODATA_L & 0x1;
-    return firstTime && secondTime;
+    long pressed = GPIODATA_L & 0x1;
+    if (pressed == 0x0)
+        return pressed;
+    int held = two_seconds();
+    return pressed & held;
 }
 
 unsigned long ped_switch(void)
 {
-    int firstTime = GPIODATA_L & 0x2;
-    if (firstTime == 0)
-        return 0;
-    oneHertz(2);
-    int secondTime = GPIODATA_L & 0x2;
-    return firstTime && secondTime;
+    long pressed = GPIODATA_L & 0x2;
+    if (pressed == 0x0)
+        return pressed;
+    int held = two_seconds();
+    return pressed & held;
 }
 
-enum TFF_State
+enum TL_State
 {
-    TFF_Begin,
-    TFF_S0,
-    TFF_S1,
-    TFF_S2,
-    TFF_End
-} TFF_State; // state variable declaration
+    TL_SMStart,
+    TL_Go,
+    TL_Warn,
+    TL_Stop,
+    TL_Off
+} TL_State; // state variable declaration
 
 void tffFunc()
 {
-    if (GPTMRIS0 & 0x1)
+    if (GPTMRIS_0 & 0x1)
     {
         cnt += 1;
         resetTimer();
     }
 
-    switch (TFF_State)
+    switch (TL_State)
     {
-    case TFF_Begin:
+    case TL_SMStart:
         prev = cnt;
-        TFF_State = TFF_S2;
+        TL_State = TL_Stop;
         break;
-    case TFF_S0:
+    case TL_Go:
         if (sys_switch())
         {
-            TFF_State = TFF_End;
+            TL_State = TL_Off;
         }
         else if (ped_switch())
         {
-            TFF_State = TFF_S1;
+            TL_State = TL_Warn;
             time = 0;
         }
         //else if (time == 500000)
         else if (cnt - prev >= 5)
         {
             prev = cnt;
-            TFF_State = TFF_S2;
+            TL_State = TL_Stop;
         }
         else
-            time++;
+        {
+            GPTMICR_1 |= 0x1;
+            while (!(GPTMRIS_1 & 0x1)) {}
+            TL_State = TL_Stop;
+          }
         break;
-    case TFF_S1:
+    case TL_Warn:
 
         if (sys_switch())
         {
-            TFF_State = TFF_End;
+            TL_State = TL_Off;
         }
         else if (cnt - prev >= 5)
         {
             prev = cnt;
-            TFF_State = TFF_S2;
+            TL_State = TL_Stop;
         }
         else
             time++;
         break;
-    case TFF_S2:
+    case TL_Stop:
 
         if (sys_switch())
         {
-            TFF_State = TFF_End;
+            TL_State = TL_Off;
         }
         else if (cnt - prev >= 5)
         {
             prev = cnt;
-            TFF_State = TFF_S0;
+            TL_State = TL_Go;
             time = 0;
         }
         else
             time++;
         break;
-    case TFF_End:
-        LED_off();
+    case TL_Off:
+        off_output();
         time = 0;
         if (sys_switch())
         {
-            TFF_State = TFF_Begin;
+            TL_State = TL_SMStart;
         }
         break;
     default:
-        TFF_State = TFF_Begin;
+        TL_State = TL_SMStart;
         break;
     }
-    switch (TFF_State) // State actions
+    switch (TL_State) // State actions
     {
-    case TFF_S0:
-        Go_State();
+    case TL_Go:
+        go_output();
         break;
-    case TFF_S1:
-        Warn_State();
+    case TL_Warn:
+        warn_output();
         break;
-    case TFF_S2:
-        Stop_State();
+    case TL_Stop:
+        stop_output();
         break;
-    case TFF_End:
-        LED_off();
+    case TL_Off:
+        off_output();
         break;
     default:
         break;
