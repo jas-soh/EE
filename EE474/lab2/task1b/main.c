@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include "task1b.h"
 
-
 int main()
 {
     timer0_init();
@@ -10,7 +9,7 @@ int main()
 
     while (1)
     {
-        tffFunc();
+        SM();
     }
     return 0;
 }
@@ -19,29 +18,29 @@ void timer0_init()
 {
     RCGCTIMER |= GPTM0_16_32;           // Enable 16/32 Timer 0
 
-    GPTMCTL0 = GPTMA_DISABLE;           // Disable Timer A
-    GPTMCFG0 = TM_MODE_32;              // Select two timer to 32-bit mode
-    GPTMTAMR0 |= TAMR_PER_TM_MODE;      // Set periodic timer mode
-    GPTMTAMR0 &= ~TACDIR_COUNT_UP;      // Configure TACDIR0 to count down
-    GPTMTAILR0 = N16_MIL;               // Load value of 16 million into GPTMTAILR0
-    GPTMCTL0 |= GPTMA_ENABLE;           // Enable Timer A
+    GPTMCTL_0 = GPTMA_DISABLE;           // Disable Timer A
+    GPTMCFG_0 = TM_MODE_32;              // Select two timer to 32-bit mode
+    GPTMTAMR_0 |= TAMR_PER_TM_MODE;      // Set periodic timer mode
+    GPTMTAMR_0 &= ~TACDIR_COUNT_UP;      // Configure TACDIR0 to count down
+    GPTMTAILR_0 = N16_MIL;               // Load value of 16 million into GPTMTAILR0
+    GPTMCTL_0 |= GPTMA_ENABLE;           // Enable Timer A
 }
 
 
 int two_seconds()
 {
-    GPTMICR0 |= 0x1;
+    GPTMICR_0 |= 0x1;
     int t = 0;
     while (t < 2 )
     {
         if ((GPIODATA_L & 0x03) == 0x0) // unpressed
         {
-          GPTMICR0 |= 0x1;
+          GPTMICR_0 |= 0x1;
           return 0;
         }
-        if (GPTMRIS0 & 0x1)
+        if (GPTMRIS_0 & 0x1)
         {
-          GPTMICR0 |= 0x1;
+          GPTMICR_0 |= 0x1;
           t++;
         }
     }
@@ -51,27 +50,27 @@ int two_seconds()
 
 int five_seconds(int go)
 {
-    GPTMICR0 |= 0x1;
+    GPTMICR_0 |= 0x1;
     int time = 0;
     while (time < 5)
     {
       if (sys_switch())
       {
-        GPTMICR0 |= 0x1;
+        GPTMICR_0 |= 0x1;
         return 0; // return 0 means sys switch was activated
       }
       if ((go == 1) && ped_switch())
       {
-        GPTMICR0 |= 0x1;
+        GPTMICR_0 |= 0x1;
         return 2; // return 0 means sys switch was activated
       }
-      if (GPTMRIS0 & 0x1)
+      if (GPTMRIS_0 & 0x1)
       {
         time++;
-        GPTMICR0 |= 0x1;
+        GPTMICR_0 |= 0x1;
       }
     }
-    GPTMICR0 |= 0x1;
+    GPTMICR_0 |= 0x1;
     return 1; // return 1 means nothing was pressed; continue w/ default
 }
 
@@ -98,28 +97,28 @@ void LED_init(void)
     GPIODEN_L |= 0x10;
 }
 // turn on Green LED
-void Go_State(void)
+void Go_Output(void)
 {
     GPIODATA_L &= ~0x4;
     GPIODATA_L &= ~0x8;
     GPIODATA_L |= 0x10;
 }
 // turn on Red LED
-void Stop_State(void)
+void Stop_Output(void)
 {
     GPIODATA_L |= 0x4;
     GPIODATA_L &= ~0x8;
     GPIODATA_L &= ~0x10;
 }
 // turn on Yellow LED
-void Warn_State(void)
+void Warn_Output(void)
 {
     GPIODATA_L &= ~0x4;
     GPIODATA_L |= 0x8;
     GPIODATA_L &= ~0x10;
 }
 // turn off all LEDs
-void LED_off(void)
+void Off_Output(void)
 {
     GPIODATA_L &= ~0x4;
     GPIODATA_L &= ~0x8;
@@ -145,118 +144,124 @@ void extern_switch_init(void)
 
 unsigned long sys_switch(void)
 {
-    int firstTime = GPIODATA_L & 0x1;
-    if (firstTime == 0)
-        return 0;
-    int held = two_seconds();
-    int secondTime = GPIODATA_L & 0x1;
-    return firstTime && held;
+    if (GPIODATA_L & 0x1)
+    {
+      int held = two_seconds();
+      return held;
+    }
+    else
+    {
+      return 0x0;
+    }
 }
 
 unsigned long ped_switch(void)
 {
-    int firstTime = GPIODATA_L & 0x2;
-    if (firstTime == 0)
-        return 0;
-    int held = two_seconds();
-    int secondTime = GPIODATA_L & 0x2;
-    return firstTime && held;
+    if (GPIODATA_L & 0x2)
+    {
+      int held = two_seconds();
+      return held;
+    }
+    else
+    {
+      return 0x0;
+    }
 }
-enum TFF_State
+enum TL_State
 {
-    TFF_Begin,
-    TFF_S0,
-    TFF_S1,
-    TFF_S2,
-    TFF_End
-} TFF_State; // state variable declaration
+    TL_SMStart,
+    TL_Go,
+    TL_Warn,
+    TL_Stop,
+    TL_Off
+} TL_State; // state variable declaration
 
-void tffFunc()
+void SM()
 {
   int wait;
 
-  switch (TFF_State)
+  switch (TL_State)
   {
     
-    case TFF_Begin:
-      TFF_State = TFF_S2;
+    case TL_SMStart:
+      TL_State = TL_Stop;
       break;
       
-    case TFF_S0:
+    case TL_Go:
       wait = five_seconds(1);
       if (wait == 1)
       {
-        TFF_State = TFF_S2;
+        TL_State = TL_Stop;
       } 
       else if (wait == 2)
       {
-        TFF_State = TFF_S1;
+        TL_State = TL_Warn;
       }
       else
       {
-        TFF_State = TFF_End;
+        TL_State = TL_Off;
       }
       break;
       
-    case TFF_S1:
+    case TL_Warn:
       wait = five_seconds(0);
       if (wait == 1)
       {
-        TFF_State = TFF_S2;
+        TL_State = TL_Stop;
       } 
       else if (wait == 0)
       {
-        TFF_State = TFF_End;
+        TL_State = TL_Off;
       }
       else
       {
-        TFF_State = TFF_S2;
+        TL_State = TL_Stop;
       }
       break;
       
-    case TFF_S2:
+    case TL_Stop:
       wait = five_seconds(0);
       if (wait == 1)
       {
-        TFF_State = TFF_S0;
+        TL_State = TL_Go;
       } 
       else if (wait == 0)
       {
-        TFF_State = TFF_End;
+        TL_State = TL_Off;
       }
       else
       {
-        TFF_State = TFF_S0;
+        TL_State = TL_Go;
       }
       break;
       
-    case TFF_End:
-        LED_off();
+    case TL_Off:
+        Off_Output();
         if (sys_switch())
         {
-            TFF_State = TFF_Begin;
+            TL_State = TL_SMStart;
         }
         break;
         
     default:
-        TFF_State = TFF_Begin;
+        TL_State = TL_SMStart;
         break;
     }
   
   
-    switch (TFF_State) // State actions
+    switch (TL_State) // State actions
     {
-    case TFF_S0:
-        Go_State();
+    case TL_Go:
+        Go_Output();
         break;
-    case TFF_S1:
-        Warn_State();
+    case TL_Warn:
+        Warn_Output();
         break;
-    case TFF_S2:
-        Stop_State();
+    case TL_Stop:
+        Stop_Output();
         break;
-    case TFF_End:
-        LED_off();
+    case TL_Off:
+        Off_Output();
         break;
     default:
         break;
