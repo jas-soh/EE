@@ -3,143 +3,99 @@
 
 int main()
 {
-    timer0_init();
-    LED_init();
-    extern_switch_init();
+  timer0_init();
+  LED_init();
+  extern_switch_init();
 
-    while (1)
-    {
-        SM();
-    }
-    return 0;
+  while (1)
+  {
+    SM();
+  }
+  return 0;
 }
 
 void timer0_init()
 {
-    RCGCTIMER |= GPTM0_16_32;           // Enable 16/32 Timer 0
+  RCGCTIMER |= GPTM0_16_32; // Enable 16/32 Timer 0
 
-    GPTMCTL_0 = GPTMA_DISABLE;           // Disable Timer A
-    GPTMCFG_0 = TM_MODE_32;              // Select two timer to 32-bit mode
-    GPTMTAMR_0 |= TAMR_PER_TM_MODE;      // Set periodic timer mode
-    GPTMTAMR_0 &= ~TACDIR_COUNT_UP;      // Configure TACDIR0 to count down
-    GPTMTAILR_0 = N16_MIL;               // Load value of 16 million into GPTMTAILR0
-    GPTMCTL_0 |= GPTMA_ENABLE;           // Enable Timer A
+  GPTMCTL_0 = 0x0; // Disable Timer A
+  GPTMCFG_0 = MODE_32; // Set to 32-bit mode
+  GPTMTAMR_0 |= PERIODIC_MODE; // Set periodic timer mode
+  GPTMTAMR_0 = COUNT_DOWN; // TACDIR0 to count down
+  GPTMTAILR_0 = VAL_16_MIL; // Load value of 16 million into GPTMTAILR0
+  GPTMCTL_0 |= 0x1; // Enable Timer A
 }
 
 
 int two_seconds()
 {
-    GPTMICR_0 |= 0x1;
-    int t = 0;
-    while (t < 2 )
-    {
-        if ((GPIODATA_L & 0x03) == 0x0) // unpressed
-        {
-          GPTMICR_0 |= 0x1;
-          return 0;
-        }
-        if (GPTMRIS_0 & 0x1)
-        {
-          GPTMICR_0 |= 0x1;
-          t++;
-        }
-    }
-    // must have finished holding two seconds
-    return 1;
+  GPTMICR_0 |= 0x1;
+  int t = 0;
+  while (t < 2 )
+  {
+      if ((GPIODATA_L & 0x03) == 0x0) // unpressed
+      {
+        GPTMICR_0 |= 0x1;
+        return 0;
+      }
+      if (GPTMRIS_0 & 0x1)
+      {
+        GPTMICR_0 |= 0x1;
+        t++;
+      }
+  }
+  // must have finished holding two seconds
+  return 1;
 }
 
 int five_seconds(int go)
 {
-    GPTMICR_0 |= 0x1;
-    int time = 0;
-    while (time < 5)
+  GPTMICR_0 |= 0x1;
+  int time = 0;
+  while (time < 5)
+  {
+    if (sys_switch())
     {
-      if (sys_switch())
-      {
-        GPTMICR_0 |= 0x1;
-        return 0; // return 0 means sys switch was activated
-      }
-      if ((go == 1) && ped_switch())
-      {
-        GPTMICR_0 |= 0x1;
-        return 2; // return 0 means sys switch was activated
-      }
-      if (GPTMRIS_0 & 0x1)
-      {
-        time++;
-        GPTMICR_0 |= 0x1;
-      }
+      GPTMICR_0 |= 0x1;
+      return 0; // return 0 means sys switch was activated
     }
-    GPTMICR_0 |= 0x1;
-    return 1; // return 1 means nothing was pressed; continue w/ default
+    if ((go == 1) && ped_switch())
+    {
+      GPTMICR_0 |= 0x1;
+      return 2; // return 0 means sys switch was activated
+    }
+    if (GPTMRIS_0 & 0x1)
+    {
+      time++;
+      GPTMICR_0 |= 0x1;
+    }
+  }
+  GPTMICR_0 |= 0x1;
+  return 1; // return 1 means nothing was pressed; continue w/ default
 }
 
 void LED_init(void)
 {
-    // Enable Port L Gating Clock
-    RCGCGPIO |= Port_L;
-    
-    // Disable PL2, PL3, PL4 analog function
-    GPIOAMSEL_L &= ~0x4;
-    GPIOAMSEL_L &= ~0x8;
-    GPIOAMSEL_L &= ~0x10;
-    // Select PL2, PL3, PL4 regular port function
-    GPIOAFSEL_L &= ~0x4;
-    GPIOAFSEL_L &= ~0x8;
-    GPIOAFSEL_L &= ~0x10;
-    // Set PL2, PL3, PL4 to input direction
-    GPIODIR_L |= 0x4;
-    GPIODIR_L |= 0x8;
-    GPIODIR_L |= 0x10;
-    // Enable PL2, PL3, PL4 digital function
-    GPIODEN_L |= 0x4;
-    GPIODEN_L |= 0x8;
-    GPIODEN_L |= 0x10;
-}
-// turn on Green LED
-void Go_Output(void)
-{
-    GPIODATA_L &= ~0x4;
-    GPIODATA_L &= ~0x8;
-    GPIODATA_L |= 0x10;
-}
-// turn on Red LED
-void Stop_Output(void)
-{
-    GPIODATA_L |= 0x4;
-    GPIODATA_L &= ~0x8;
-    GPIODATA_L &= ~0x10;
-}
-// turn on Yellow LED
-void Warn_Output(void)
-{
-    GPIODATA_L &= ~0x4;
-    GPIODATA_L |= 0x8;
-    GPIODATA_L &= ~0x10;
-}
-// turn off all LEDs
-void Off_Output(void)
-{
-    GPIODATA_L &= ~0x4;
-    GPIODATA_L &= ~0x8;
-    GPIODATA_L &= ~0x10;
+  // Enable Port L
+  RCGCGPIO |= Port_L;
+
+  GPIOAMSEL_L &= ~(0x04 | 0x08 | 0x20); // disable analog function of PL2, PL3, PL4
+  GPIOAFSEL_L &= ~(0x04 | 0x08 | 0x20); // set PL2, PL3, PL4 to regular port function
+  GPIODIR_L |= (0x04 | 0x08 | 0x20); // set PL2, PL3, PL4 to output
+  GPIODEN_L |= (0x04 | 0x08 | 0x20); // enable digital output on PL2, PL3, PL4
 }
 
 void extern_switch_init(void)
 {
-    RCGCGPIO |= 0x400;
-    // Disable PL0, PL1 analog function
-    GPIOAMSEL_L &= ~0x1;
-    GPIOAMSEL_L &= ~0x2;
-    // Select PL0, PL1 regular port function
-    GPIOAFSEL_L &= ~0x1;
-    GPIOAFSEL_L &= ~0x2;
-    // Set PL0, PL1 to input direction
-    GPIODIR_L &= ~0x1;
-    GPIODIR_L &= ~0x2;
-    // Enable PL0, PL1 digital function
-    GPIODEN_L |= 0x1;
-    GPIODEN_L |= 0x2;   
+  volatile unsigned short delay = 0;
+  RCGCGPIO |= 0x400; // activate clock for Port L
+  delay++;
+  delay++;
+  
+  GPIOAMSEL_L &= ~(0x01 | 0x2); // disable analog function of PL0, PL1
+  GPIOAFSEL_L &= ~(0x01 | 0x2); // set PL0, PL1 to regular port function
+  GPIODIR_L &= ~(0x01 | 0x2); // set PL0, PL1 to input
+  GPIODEN_L |= (0x01 | 0x2); // enable digital output on PL0, PL1
 }
 
 unsigned long sys_switch(void)
@@ -157,24 +113,19 @@ unsigned long sys_switch(void)
 
 unsigned long ped_switch(void)
 {
-    if (GPIODATA_L & 0x2)
-    {
-      int held = two_seconds();
-      return held;
-    }
-    else
-    {
-      return 0x0;
-    }
+  if (GPIODATA_L & 0x2)
+  {
+    int held = two_seconds();
+    return held;
+  }
+  else
+  {
+    return 0x0;
+  }
 }
-enum TL_State
-{
-    TL_SMStart,
-    TL_Go,
-    TL_Warn,
-    TL_Stop,
-    TL_Off
-} TL_State; // state variable declaration
+
+ // state variables
+enum TL_State {TL_SMStart,TL_Go, TL_Warn, TL_Stop, TL_Off} TL_State;
 
 void SM()
 {
@@ -236,7 +187,7 @@ void SM()
       break;
       
     case TL_Off:
-        Off_Output();
+        TL_State = TL_Off;
         if (sys_switch())
         {
             TL_State = TL_SMStart;
@@ -249,21 +200,24 @@ void SM()
     }
   
   
-    switch (TL_State) // State actions
-    {
+  switch (TL_State) // State actions
+  {
     case TL_Go:
-        Go_Output();
-        break;
+      GPIODATA_L |= 0x10;
+      GPIODATA_L &= 0x10;
+      break;
     case TL_Warn:
-        Warn_Output();
-        break;
+      GPIODATA_L |= 0x8;
+      GPIODATA_L &= 0x8;
+      break;
     case TL_Stop:
-        Stop_Output();
-        break;
+      GPIODATA_L |= 0x4;
+      GPIODATA_L &= 0x4;
+      break;
     case TL_Off:
-        Off_Output();
-        break;
+      GPIODATA_L = 0x0;
+      break;
     default:
-        break;
-    }
+      break;
+  }
 }
