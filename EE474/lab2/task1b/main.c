@@ -79,10 +79,10 @@ void LED_init(void)
   // Enable Port L
   RCGCGPIO |= Port_L;
 
-  GPIOAMSEL_L &= ~(0x04 | 0x08 | 0x20); // disable analog function of PL2, PL3, PL4
-  GPIOAFSEL_L &= ~(0x04 | 0x08 | 0x20); // set PL2, PL3, PL4 to regular port function
-  GPIODIR_L |= (0x04 | 0x08 | 0x20); // set PL2, PL3, PL4 to output
-  GPIODEN_L |= (0x04 | 0x08 | 0x20); // enable digital output on PL2, PL3, PL4
+  GPIOAMSEL_L &= ~(0x04 | 0x08 | 0x10); // disable analog function of PL2, PL3, PL4
+  GPIOAFSEL_L &= ~(0x04 | 0x08 | 0x10); // set PL2, PL3, PL4 to regular port function
+  GPIODIR_L |= (0x04 | 0x08 | 0x10); // set PL2, PL3, PL4 to output
+  GPIODEN_L |= (0x04 | 0x08 | 0x10); // enable digital output on PL2, PL3, PL4
 }
 
 void extern_switch_init(void)
@@ -197,7 +197,7 @@ void SM()
     default:
         TL_State = TL_SMStart;
         break;
-    }
+  }
   
   
   switch (TL_State) // State actions
