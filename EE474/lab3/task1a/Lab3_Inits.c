@@ -127,10 +127,10 @@ void ADCReadPot_Init(void) {
   ADCSSMUX3_0 = 0xC; // Select AIN3
 
   // 2.14: Configure ADCSSCTL3 register
-  ADCSSCTL3_0 |= 0x6;
+  ADCSSCTL3_0 = 0x4;
 
   // 2.15: Set the SS3 interrupt mask
-  ADCIM_0 |= 0x8; // 0x8 checked
+  ADCIM_0 = 0x8; // 0x8 checked
 
   // 2.16: Set the corresponding bit for ADC0 SS3 in NVIC
   NVIC_EN0 |= (1 << 17);
