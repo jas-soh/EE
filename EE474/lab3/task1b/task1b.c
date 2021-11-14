@@ -1,5 +1,5 @@
-#ifndef _task1a_H_
-#define _task1a_H_
+#ifndef _task1b_H_
+#define _task1b_H_
 
 //GPIO
 #define RCGCGPIO (*((volatile uint32_t *) 0x400FE608))
