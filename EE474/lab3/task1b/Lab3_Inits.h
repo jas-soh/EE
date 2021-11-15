@@ -35,4 +35,6 @@ void TimerADCTriger_Init(void);
 
 void PortJ_Handler(void); 
 
+void UART_Init(void);
+
 #endif  // _Lab3_Inits_H_
