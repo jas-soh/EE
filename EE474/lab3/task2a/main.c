@@ -9,44 +9,42 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "Lab3_Inits.h"
-#include "task1a.h"
+#include "task2a.h"
+#include <string.h>  
+#include <math.h>
 
 // STEP 0b: Include your header file here
 // YOUR CUSTOM HEADER FILE HERE
 
 uint32_t ADC_value;
 enum frequency freq;
+float temp;
+int update;
 
 int main(void) {
   // Select system clock frequency preset
-  freq = PRESET2; // 60 MHz
+  freq = PRESET1; 
   PLL_Init(freq);        // Set system clock frequency to 60 MHz
-  LED_Init();            // Initialize the 4 onboard LEDs (GPIO)
+  
   Switches_Init();           // Initialize the 2 onboard switches (GPIO)
   ADCReadPot_Init();     // Initialize ADC0 to read from the potentiometer
   TimerADCTriger_Init(); // Initialize Timer0A to trigger ADC0
-  //float resistance;
-  float temp;
+  UART_Init(0x30D, 0x10); 
+      
   while(1) {
     
-    //resistance = (double) ADC_value / 4095.0 * 10.0;
-    //if (resistance < 2.5) {
-      //GPIODATA_N = LED1; // turn on only LED1
-      //GPIODATA_F = 0x0; // turn off everything else
-    //} else if (resistance < 5.0) {
-      //GPIODATA_N = LED1 | LED2; // turn on LED1 and LED2
-      //GPIODATA_F = 0x0; // turn off everything else
-    //} else if (resistance < 7.5) {
-      //GPIODATA_N = LED1 | LED2; // turn on LED1 and LED2
-      //GPIODATA_F = LED3; // turn on only LED3
-    //} else {
-      //GPIODATA_N = LED1 | LED2; // turn on LED1 and LED2
-      //GPIODATA_F = LED3 | LED4; // turn on LED3 and LED4
-    //}
-    
+    update = 0;
     temp = (float) 147.5 - ((247.5 * ADC_value) / 4096);
-    //temp = (float) (147.5 - ((75 * (3.3) * ADC_value) / 4096));
+    temp = roundf(temp * 100) / 100;
     printf("%f\n", temp);
+
+    char output[9];
+    sprintf(output, "%.2f\r\n", temp); 
+    for (int i = 0; i < 9; i++)
+    {
+        UARTDR_0 = output[i];
+    }
+    while (update = 0) {};
 
   }
   return 0;
@@ -56,16 +54,23 @@ void PortJ_Handler(void) {
    if (GPIOMIS_J & SW1) { // Sw1 is pressed
       GPIOICR_J |= 0x3; // clear interupt from SW1
       freq = PRESET1;
+      PLL_Init(freq); 
+      UART_Init(0x30D, 0x10);
    }
 
    if (GPIOMIS_J & SW2) { // Sw2 is pressed
       GPIOICR_J |= 0x3;// clear interupt from SW2
       freq = PRESET3;
+      PLL_Init(freq); 
+      UART_Init(0x4E,0x8);
    }
-   PLL_Init(freq); 
 }
 
-void ADC0SS3_Handler(void) {
-   ADCISC_0 |= 0x8; // clear the interrupt flag
-   ADC_value = ADCSSFIFO3; // save adc value to global variable
+
+void ADC0SS3_Handler(void)
+{                           
+    ADCISC_0 |= 0x8;          // clear the ADC0 interrupt flag
+    GPTMICR_0 |= 0x1;       // clear timed out
+    ADC_value = ADCSSFIFO3; // save the ADC value to global variable ADC_value
+    update = 1;
 }
