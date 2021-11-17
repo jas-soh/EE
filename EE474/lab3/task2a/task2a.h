@@ -1,5 +1,5 @@
-#ifndef _task1a_H_
-#define _task1a_H_
+#ifndef _task2a_H_
+#define _task2a_H_
 
 //GPIO
 #define RCGCGPIO (*((volatile uint32_t *) 0x400FE608))
@@ -83,10 +83,31 @@
 #define GPTMTAILR_0 (*((volatile uint32_t *)0x40030028))
 #define GPTMADCEV_0 (*((volatile uint32_t *)0x40030070))
 #define GPTMCC_0 (*((volatile uint32_t *)0x40030FC8))
+#define GPTMRIS_0 (*((volatile uint32_t *)0x4003001C))
+#define GPTMICR_0 (*((volatile uint32_t *)0x40030024))
 
 // interrupt
-#define NVIC_EN0  (*((volatile uint32_t *)0xE000E100))
+#define EN0  (*((volatile uint32_t *)0xE000E100))
 #define EN1 (*((volatile uint32_t *)0xE000E104))
 #define ENABLE_51 0x80000
 
-#endif  // _task1a_H_
+// UART page 1172
+#define PIN_0 0x1
+#define PIN_1 0x2
+#define RCGCUART  (*((volatile uint32_t *)  0x400FE618))
+#define PORT_A 0x1;
+#define GPIODEN_A (*((volatile uint32_t *)0x4005851C))
+#define GPIOAFSEL_A  (*((volatile uint32_t *)0x40058420))
+#define GPIODR2R_A  (*((volatile uint32_t *)0x40058500))
+//#define GPIOASLR_A  (*((volatile uint32_t *)0x40058518))
+#define GPIOPCTL_A  (*((volatile uint32_t *)0x4005852C))
+
+#define UARTCTL_0 (*((volatile uint32_t *)  0x4000C030))
+#define UARTIBRD_0 (*((volatile uint32_t *)  0x4000C024))
+#define UARTFBRD_0 (*((volatile uint32_t *)  0x4000C028))
+#define UARTLCRH_0 (*((volatile uint32_t *)  0x4000C02C))
+#define UARTCC_0 (*((volatile uint32_t *)  0x4000CFC8))
+#define UARTDR_0 (*((volatile uint32_t *) 0x4000C000))
+#define UARTFR_0 (*((volatile uint32_t *) 0x4000C018)) // UART Flag 
+
+#endif  // _task2a_H_
